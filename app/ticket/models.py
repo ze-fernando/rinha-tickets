@@ -16,7 +16,7 @@ class Status(StrEnum):
 class Ticket(Base):
     __tablename__ = "tickets"
 
-    title: Mapped[str] = mapped_column(String)
+    title: Mapped[str] = mapped_column(String, unique=True)
     description: Mapped[str] = mapped_column(String)
     sector: Mapped[str] = mapped_column(String)
     status: Mapped[Status] = mapped_column(Enum(Status))

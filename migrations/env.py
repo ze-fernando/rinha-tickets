@@ -5,7 +5,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.infra.database import Base
-from app.ticket.models import Ticket  # noqa: F401
+from app.ticket.models import Ticket
 
 config = context.config
 target_metadata = Base.metadata
@@ -14,20 +14,25 @@ DATABASE_URL = "sqlite+aiosqlite:///database.sqlite"
 
 
 def run_migrations_offline() -> None:
-    # Modo offline usa URL síncrona (sem +aiosqlite)
+
     sync_url = DATABASE_URL.replace("+aiosqlite", "")
     context.configure(
         url=sync_url,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         target_metadata=target_metadata,
+        render_as_batch=True,
     )
     with context.begin_transaction():
         context.run_migrations()
 
 
 def do_run_migrations(connection):
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        render_as_batch=True,
+    )
     with context.begin_transaction():
         context.run_migrations()
 

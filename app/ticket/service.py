@@ -30,11 +30,7 @@ async def get_by_id(db: Session, ticket_id: int) -> TicketResponse:
 
 
 async def create(db: Session, ticket: NewTicket) -> TicketResponse:
-    ticket_db = await db.scalar(
-        select(Ticket).where(
-            (Ticket.title == ticket.title) & (Ticket.description == ticket.description)
-        )
-    )
+    ticket_db = await db.scalar(select(Ticket).where(Ticket.title == ticket.title))
     if ticket_db:
         raise TicketAlreadyExists()
 
@@ -55,8 +51,11 @@ async def update(db: Session, ticket_id: int, ticket: NewTicket) -> TicketRespon
 
     ticket_db.title = ticket.title
     ticket_db.description = ticket.description
+    ticket_db.sector = ticket.sector
     ticket_db.status = ticket.status
-    if ticket.status == Status.OPEN:
+    if ticket.status == Status.CLOSED:
+        ticket_db.finished_at = ticket_db.finished_at or datetime.now(UTC)
+    else:
         ticket_db.finished_at = None
 
     await db.commit()
