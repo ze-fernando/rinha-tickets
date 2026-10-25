@@ -210,7 +210,11 @@ local function handle_connection(client, handler)
 
   if request == nil then
     if message then
-      send_response(client, 400, { code = "BAD_REQUEST", message = "Requisição inválida." })
+      if message == "corpo muito grande" then
+        send_response(client, 413, { code = "PAYLOAD_TOO_LARGE", message = "Corpo da requisição muito grande." })
+      else
+        send_response(client, 400, { code = "BAD_REQUEST", message = "Requisição inválida." })
+      end
     end
 
     return
