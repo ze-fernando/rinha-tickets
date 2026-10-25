@@ -1,0 +1,16 @@
+/.bundle
+/.ruby-lsp
+/coverage
+/log/*
+!/log/.keep
+/storage/*
+!/storage/.keep
+/tmp/*
+!/tmp/.keep
+/vendor/bundle
+/config/master.key
+/public/assets
+/node_modules
+/.env
+/.env.*
+/db/*.sqlite3
