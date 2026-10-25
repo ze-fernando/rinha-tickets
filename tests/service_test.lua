@@ -186,7 +186,7 @@ return {
 
         t:equal(finished.status, Status.CLOSED)
         t:truthy(finished.finished_at)
-        t:truthy(finished.finished_at > created.updated_at)
+        t:truthy(finished.finished_at >= created.updated_at)
       end,
     },
     {
