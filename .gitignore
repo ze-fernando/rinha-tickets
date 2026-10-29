@@ -1,3 +1,8 @@
 *
 !.gitignore
 !README.md
+
+!go-gin/
+!go-gin/**
+go-gin/database.sqlite*
+go-gin/api

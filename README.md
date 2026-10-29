@@ -18,6 +18,10 @@ A proposta é aprender e trocar experiências, sem briga entre linguagens, torci
 
 A `main` contém apenas a documentação do projeto. A implementação Python está na branch `python`; a documentação abaixo descreve essa implementação. A equivalência das demais branches deve ser verificada antes de comparar resultados.
 
+## Implementação Go
+
+A versão com Gin, GORM e SQLite está em [`go-gin/`](go-gin/README.md), com instruções de execução e testes e diferenças documentadas em relação ao contrato abaixo.
+
 ## Executar a implementação Python
 
 Pré-requisitos: Git, Python 3.14 ou superior e PDM disponíveis no terminal. As dependências estão em `pyproject.toml`, com versões resolvidas em `pdm.lock`.
