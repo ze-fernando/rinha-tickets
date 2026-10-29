@@ -16,7 +16,7 @@ A proposta é aprender e trocar experiências, sem briga entre linguagens, torci
 | [ruby](https://github.com/ze-fernando/rinha-tickets/tree/ruby) | Ruby |
 | [rust](https://github.com/ze-fernando/rinha-tickets/tree/rust) | Rust |
 
-A `main` foi criada a partir da implementação Python e também contém esse código. A documentação abaixo descreve essa implementação; a equivalência das demais branches deve ser verificada antes de comparar resultados.
+A `main` contém apenas a documentação do projeto. A implementação Python está na branch `python`; a documentação abaixo descreve essa implementação. A equivalência das demais branches deve ser verificada antes de comparar resultados.
 
 ## Executar a implementação Python
 
@@ -31,7 +31,7 @@ pdm run alembic upgrade head
 pdm run dev
 ```
 
-Para executar o código presente na `main`, use `git switch main` no lugar de `git switch python`.
+Para executar a implementação Python, use a branch `python`.
 
 O servidor atende em `http://localhost:8000`. O comando de desenvolvimento usa recarga automática e escuta em `0.0.0.0:8000`.
 
