@@ -118,7 +118,7 @@ A mensagem de título duplicado diz “em aberto”, mas a verificação conside
 O contrato não exige uma máquina de estados: as transições diretas entre todos os status são permitidas. Detalhes do encerramento:
 
 - Atualizar para `closed` preenche `finished_at` se ainda não houver data e preserva a existente.
-- Chamar `/finish` novamente substitui a data de encerramento pelo horário da nova chamada.
+- Chamar `/finish` novamente substitui a data de encerramento pelo horário da nova chamada; a precisão depende da implementação.
 - Criar diretamente com `closed` é permitido, mas não preenche `finished_at`. Para o fluxo normal, crie com `open` e encerre depois.
 
 ## requests.sh

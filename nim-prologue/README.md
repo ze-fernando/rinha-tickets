@@ -13,7 +13,7 @@ nimble build
 ./ticket
 ```
 
-O servidor escuta em `http://localhost:8000`. A tabela `tickets` é criada por `createTables` na primeira conexão, sem migrações versionadas nem rollback. Use um arquivo SQLite próprio desta implementação.
+O servidor escuta em `http://localhost:8000`. A tabela `tickets` é criada por `createTables` na inicialização, sem migrações versionadas nem rollback. Use um arquivo SQLite próprio desta implementação.
 
 Configurações opcionais:
 
@@ -26,7 +26,7 @@ Configurações opcionais:
 PORT=8080 DATABASE_PATH=/tmp/tickets.sqlite ./ticket
 ```
 
-Cada thread usa sua própria conexão SQLite, com `journal_mode=WAL` e `busy_timeout=5000`. O build precisa de `--deepcopy:on` por causa da integração entre Prologue e Norm; a opção já está em `config.nims`.
+A inicialização ativa `journal_mode=WAL`; cada thread abre a própria conexão SQLite com `busy_timeout=5000`. O build precisa de `--deepcopy:on` por causa da integração entre Prologue e Norm; a opção já está em `config.nims`.
 
 ## Testes
 
@@ -63,14 +63,15 @@ curl -X PUT http://localhost:8000/api/tickets/1/finish
 
 Objetos retornam `id`, `title`, `description`, `sector`, `status`, `finished_at` e `created_at`. `updated_at` é persistido, mas não exposto. Listas vazias retornam `{"data":[]}`.
 
-As regras de datas seguem a referência: criar com `closed` deixa `finished_at` nulo; atualizar para `closed` preenche a data apenas se ausente; `/finish` sempre substitui a data; reabrir limpa a data. Operações não têm chave de idempotência; repetir `/finish` modifica a data e repetir a criação retorna 409.
+As regras de datas seguem a referência: criar com `closed` deixa `finished_at` nulo; atualizar para `closed` preenche a data apenas se ausente; `/finish` substitui a data, respeitando a precisão de segundos; reabrir limpa a data. Operações não têm chave de idempotência; repetir `/finish` atualiza a data e repetir a criação retorna 409.
 
-Erros usam `{"detail": ...}`: 404 com `Chamado não existe`, 409 com `Chamado já em aberto`, 422 para JSON/campos inválidos e 500 com mensagem genérica para falhas internas. IDs fora do formato inteiro decimal não negativo retornam 404 com o detalhe genérico da rota.
+Erros usam `{"detail": ...}`: 404 com `Chamado não existe`, 409 com `Chamado já em aberto`, 422 para JSON/campos inválidos e 500 com mensagem genérica para falhas internas. IDs com caracteres inválidos ou negativos retornam 404 com o detalhe genérico da rota; inteiros decimais acima de `int64` são tratados como chamado inexistente.
 
 Diferenças explícitas em relação à referência Python:
 
 - Conflitos de título em atualizações e criações concorrentes retornam 409; a referência não trata esse caso.
 - Datas são sempre UTC e truncadas em segundos; a referência pode incluir frações de segundo.
+- Chamar `/finish` duas vezes dentro do mesmo segundo pode manter o mesmo `finished_at`.
 - Detalhes de validação são strings simples, não os objetos de erro do Pydantic.
 - Não são fornecidos Swagger UI, ReDoc ou OpenAPI automático.
 - A criação de schema usa `createTables`, em vez de migrações versionadas Alembic.
