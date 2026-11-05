@@ -73,21 +73,18 @@ proc parseTicketInput*(body: string): Outcome[TicketInput] =
     )
   )
 
-proc parseId*(raw: string): Option[int64] =
+proc parseId*(raw: string): Outcome[int64] =
   if raw.len == 0:
-    return none(int64)
+    return failed[int64](fInvalid)
 
   for character in raw:
     if character notin {'0'..'9'}:
-      return none(int64)
+      return failed[int64](fInvalid)
 
   try:
-    let value = parseBiggestInt(raw)
-    if value > int64.high:
-      return none(int64)
-    some(value.int64)
+    success(parseBiggestInt(raw))
   except ValueError:
-    none(int64)
+    failed[int64](fNotFound)
 
 proc toJson*(ticket: Ticket): JsonNode =
   result = newJObject()

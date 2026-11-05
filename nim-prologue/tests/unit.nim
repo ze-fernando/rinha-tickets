@@ -86,16 +86,28 @@ suite "ticket input":
 
 suite "path id":
   test "accepts decimal ids":
-    check parseId("0") == some(0'i64)
-    check parseId("1") == some(1'i64)
-    check parseId("9223372036854775807") == some(int64.high)
+    let zero = parseId("0")
+    check zero.ok
+    check zero.value == 0'i64
+
+    let one = parseId("1")
+    check one.ok
+    check one.value == 1'i64
+
+    let highest = parseId("9223372036854775807")
+    check highest.ok
+    check highest.value == int64.high
 
   test "rejects everything else":
     for raw in ["", "-1", "+1", "1.5", " 1", "1 ", "abc", "1e3"]:
-      check parseId(raw).isNone
+      let parsed = parseId(raw)
+      check not parsed.ok
+      check parsed.failure == fInvalid
 
-  test "rejects overflow":
-    check parseId("9223372036854775808").isNone
+  test "reports overflow as a missing ticket":
+    let parsed = parseId("9223372036854775808")
+    check not parsed.ok
+    check parsed.failure == fNotFound
 
 suite "ticket serialization":
   test "serializes an open ticket":
