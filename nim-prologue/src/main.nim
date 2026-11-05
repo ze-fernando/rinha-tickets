@@ -2,5 +2,5 @@ import prologue
 import app
 import infra/database
 
-discard db()
+initDatabase()
 newTicketApp().run()

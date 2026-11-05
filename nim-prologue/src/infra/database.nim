@@ -12,11 +12,26 @@ proc databasePath*(): string =
 
 proc openDatabase(): DbConn =
   result = open(databasePath(), "", "", "")
-  result.exec(sql"PRAGMA busy_timeout=5000")
-  result.exec(sql"PRAGMA journal_mode=WAL")
-  result.createTables(Ticket())
+  try:
+    result.exec(sql"PRAGMA busy_timeout=5000")
+  except CatchableError:
+    result.close()
+    raise
 
 proc db*(): DbConn =
   if connection.isNil:
     connection = openDatabase()
   connection
+
+proc closeDatabase*() =
+  if not connection.isNil:
+    connection.close()
+    connection = nil
+
+proc initDatabase*() =
+  let database = openDatabase()
+  try:
+    database.exec(sql"PRAGMA journal_mode=WAL")
+    database.createTables(Ticket())
+  finally:
+    database.close()

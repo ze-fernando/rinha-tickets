@@ -1,6 +1,7 @@
 import std/[options, os, unittest]
 import norm/sqlite
 import ticket/[errors, models, schemas, service]
+import infra/database
 
 let databaseFile =
   getTempDir() / "ticket-integration-" & $getCurrentProcessId() & ".sqlite"
@@ -11,6 +12,7 @@ proc cleanup() =
 
 cleanup()
 putEnv("DATABASE_PATH", databaseFile)
+initDatabase()
 
 suite "ticket service":
   test "starts with empty lists":
@@ -170,12 +172,28 @@ suite "ticket service":
 
   test "keeps data after opening the database again":
     let direct = open(databaseFile, "", "", "")
-    let stored = direct.select(Ticket, "id = ?", 1)
-    direct.close()
-    check stored.len == 1
-    check stored[0].title == "Teclado quebrado"
+    try:
+      let stored = direct.select(Ticket, "id = ?", 1)
+      check stored.len == 1
+      check stored[0].title == "Teclado quebrado"
+    finally:
+      direct.close()
 
   test "exposes every ticket in the full list":
     check service.getAll().len == 3
 
+  test "creates a closed ticket without a finish date":
+    let outcome = service.create(
+      TicketInput(
+        title: "Projeto encerrado",
+        description: "Aberto antes do sistema",
+        sector: "Diretoria",
+        status: "closed"
+      )
+    )
+    check outcome.ok
+    check outcome.value.status == "closed"
+    check outcome.value.finishedAt.isNone
+
+closeDatabase()
 cleanup()
