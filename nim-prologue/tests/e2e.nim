@@ -19,7 +19,7 @@ proc cleanup() =
     removeFile(databaseFile & suffix)
 
 proc waitForServer(client: HttpClient): bool =
-  for attempt in 0..<50:
+  for attempt in 0..<100:
     try:
       if client.get(baseUrl & "/api/tickets/all").code == Http200:
         return true
@@ -53,7 +53,7 @@ putEnv("DATABASE_PATH", databaseFile)
 
 suite "http api":
   test "runs the full ticket lifecycle":
-    check fileExists(binary)
+    require fileExists(binary)
 
     let process = startProcess(
       binary,
@@ -63,7 +63,9 @@ suite "http api":
 
     defer:
       process.terminate()
-      discard process.waitForExit(2000)
+      if process.waitForExit(2000) == -1:
+        process.kill()
+        discard process.waitForExit(2000)
       process.close()
       cleanup()
 
@@ -107,6 +109,18 @@ suite "http api":
     check malformed.code == Http404
     check malformed.payload["detail"].getStr == "Not Found"
 
+    let malformedUpdate = client.send(HttpPut, "/api/tickets/abc/update", createBody)
+    check malformedUpdate.code == Http404
+    check malformedUpdate.payload["detail"].getStr == "Not Found"
+
+    let malformedFinish = client.send(HttpPut, "/api/tickets/abc/finish")
+    check malformedFinish.code == Http404
+    check malformedFinish.payload["detail"].getStr == "Not Found"
+
+    let overflowing = client.send(HttpGet, "/api/tickets/9223372036854775808")
+    check overflowing.code == Http404
+    check overflowing.payload["detail"].getStr == "Chamado não existe"
+
     let updateBody =
       """{"title":"Impressora","description":"Em análise","sector":"Recepção","status":"in_progress"}"""
     let updated = client.send(HttpPut, ticketPath & "/update", updateBody)
@@ -142,3 +156,18 @@ suite "http api":
     let unknownRoute = client.send(HttpGet, "/api/unknown")
     check unknownRoute.code == Http404
     check unknownRoute.payload["detail"].getStr == "Not Found"
+
+    let other = client.send(
+      HttpPost,
+      "/api/tickets/create",
+      """{"title":"Monitor","description":"Sem sinal","sector":"TI"}"""
+    )
+    check other.code == Http201
+
+    let duplicateUpdate = client.send(
+      HttpPut,
+      ticketPath & "/update",
+      """{"title":"Monitor","description":"Sem sinal","sector":"TI","status":"open"}"""
+    )
+    check duplicateUpdate.code == Http409
+    check duplicateUpdate.payload["detail"].getStr == "Chamado já em aberto"
